@@ -146,3 +146,21 @@ having count(distinct resSer.servicioNombre) = (select count(*) from Servicio)
 select * from Reserva_Servicio
 
 --Query 4 Obligatorio
+
+select 
+		YEAR(res.reservaFechaFin),
+		gat.gatoNombre
+
+from Reserva res
+
+join Gato gat on res.gatoID = gat.gatoID
+
+where   gat.gatoEdad > 10 
+		and gat.gatoRaza = 'Persa'
+
+group by YEAR(res.ReservaFechaFin), gat.gatoNombre
+
+having sum(res.reservaMonto) > 500
+
+
+--Query 5 Obligatorio
