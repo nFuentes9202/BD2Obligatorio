@@ -1,4 +1,3 @@
-
 use master
 
 drop database CatHotel
@@ -25,6 +24,9 @@ CREATE TABLE Gato (
     CONSTRAINT CHK_Gato_Peso CHECK (gatoPeso > 0),
     CONSTRAINT FK_Gato_Propietario FOREIGN KEY (propietarioDocumento) REFERENCES Propietario(propietarioDocumento) );
 GO
+
+CREATE INDEX I_GATO_DUEÑO ON GATO(propietarioDocumento)
+
 CREATE TABLE Habitacion (
     habitacionNombre CHAR(30) PRIMARY KEY,
     habitacionCapacidad INT,
@@ -45,6 +47,10 @@ CREATE TABLE Reserva (
     CONSTRAINT FK_Reserva_Habitacion FOREIGN KEY (habitacionNombre) REFERENCES Habitacion(habitacionNombre),
     CONSTRAINT CHK_Reserva_Fecha CHECK (reservaFechaFin > reservaFechaInicio) );
 GO
+
+CREATE INDEX I_RESERVA_GATO ON Reserva(gatoID)
+CREATE INDEX I_RESERVA_HABITACION ON Reserva(habitacionNombre)
+
 CREATE TABLE Servicio (
     servicioNombre CHAR(30) NOT NULL PRIMARY KEY,
     servicioPrecio DECIMAL(7,2),
@@ -60,14 +66,22 @@ CREATE TABLE Reserva_Servicio (
     CONSTRAINT FK_ReservaServicio_Servicio FOREIGN KEY (servicioNombre) REFERENCES Servicio(servicioNombre) );
 GO
 
+CREATE INDEX I_RESERVA_SERV_RESERVA ON Reserva_Servicio(reservaID)
+CREATE INDEX I_RESERVA_SERV_SERVICIO ON Reserva_Servicio(servicioNombre)
+
+
 
 insert into Propietario (propietarioDocumento,propietarioEmail,propietarioNombre,propietarioTelefono) values ('60242466', 'nfuentes9202@gmail.com','Nahuel','096208361')
 insert into Gato (gatoNombre,gatoRaza,gatoEdad,gatoPeso,propietarioDocumento) values ('Mia','Raza',5,30,'60242466')
+insert into Gato (gatoNombre,gatoRaza,gatoEdad,gatoPeso,propietarioDocumento) values ('Rojito','Persa',15,30,'60242466')
+insert into Gato (gatoNombre,gatoRaza,gatoEdad,gatoPeso,propietarioDocumento) values ('Azulcito','Danes',15,30,'60242466')
 insert into Habitacion (habitacionNombre,habitacionCapacidad,habitacionPrecio,habitacionEstado) values ('Habitacion 1', 6, 60.25,'DISPONIBLE')
 insert into Reserva(gatoID,habitacionNombre,reservaFechaInicio,reservaFechaFin,reservaMonto) values (1,'Habitacion 1', '27/08/2023','30/08/2023', 500)
 insert into Reserva(gatoID,habitacionNombre,reservaFechaInicio,reservaFechaFin,reservaMonto) values (1,'Habitacion 1', '20/08/2023','24/08/2023', 500)
 insert into Reserva(gatoID,habitacionNombre,reservaFechaInicio,reservaFechaFin,reservaMonto) values (1,'Habitacion 1', '01/08/2023','15/08/2023', 500)
 insert into Reserva(gatoID,habitacionNombre,reservaFechaInicio,reservaFechaFin,reservaMonto) values (1,'Habitacion 1', '27/07/2023','30/07/2023', 500)
+insert into Reserva(gatoID,habitacionNombre,reservaFechaInicio,reservaFechaFin,reservaMonto) values (2,'Habitacion 1', '27/07/2023','30/07/2023', 500)
+insert into Reserva(gatoID,habitacionNombre,reservaFechaInicio,reservaFechaFin,reservaMonto) values (3,'Habitacion 1', '27/07/2023','30/07/2023', 500)
 insert into Servicio(servicioNombre, servicioPrecio) values ('Limado',50)
 insert into Servicio(servicioNombre, servicioPrecio) values ('Lavado',20)
 insert into Servicio(servicioNombre, servicioPrecio) values ('Caricias',15)
@@ -80,6 +94,25 @@ insert into Reserva_Servicio(reservaID,servicioNombre,cantidad) values (1,'Caric
 insert into Reserva_Servicio(reservaID,servicioNombre,cantidad) values (1,'Bebidas',12)
 insert into Reserva_Servicio(reservaID,servicioNombre,cantidad) values (1,'Television',9)
 insert into Reserva_Servicio(reservaID,servicioNombre,cantidad) values (1,'PicadaPerruna',7)
+insert into Reserva_Servicio(reservaID,servicioNombre,cantidad) values (1,'Limado',8)
+insert into Reserva_Servicio(reservaID,servicioNombre,cantidad) values (1,'Lavado',3)
+insert into Reserva_Servicio(reservaID,servicioNombre,cantidad) values (1,'Caricias',5)
+insert into Reserva_Servicio(reservaID,servicioNombre,cantidad) values (1,'Bebidas',12)
+insert into Reserva_Servicio(reservaID,servicioNombre,cantidad) values (1,'Television',9)
+insert into Reserva_Servicio(reservaID,servicioNombre,cantidad) values (1,'PicadaPerruna',7)
+
+insert into Reserva_Servicio(reservaID,servicioNombre,cantidad) values (2,'Limado',8)
+insert into Reserva_Servicio(reservaID,servicioNombre,cantidad) values (2,'Lavado',3)
+insert into Reserva_Servicio(reservaID,servicioNombre,cantidad) values (2,'Caricias',5)
+insert into Reserva_Servicio(reservaID,servicioNombre,cantidad) values (2,'Bebidas',12)
+insert into Reserva_Servicio(reservaID,servicioNombre,cantidad) values (2,'Television',9)
+insert into Reserva_Servicio(reservaID,servicioNombre,cantidad) values (2,'PicadaPerruna',7)
+insert into Reserva_Servicio(reservaID,servicioNombre,cantidad) values (2,'Limado',8)
+insert into Reserva_Servicio(reservaID,servicioNombre,cantidad) values (2,'Lavado',3)
+insert into Reserva_Servicio(reservaID,servicioNombre,cantidad) values (2,'Caricias',5)
+insert into Reserva_Servicio(reservaID,servicioNombre,cantidad) values (2,'Bebidas',12)
+insert into Reserva_Servicio(reservaID,servicioNombre,cantidad) values (2,'Television',9)
+insert into Reserva_Servicio(reservaID,servicioNombre,cantidad) values (2,'PicadaPerruna',7)
 
 update Habitacion
 
@@ -164,3 +197,83 @@ having sum(res.reservaMonto) > 500
 
 
 --Query 5 Obligatorio
+
+select  distinct res.reservaID,
+		res.reservaMonto + (select sum(serv.servicioPrecio * resServ.cantidad) 
+								from Reserva_Servicio resServ 
+								join Servicio serv on resServ.servicioNombre = serv.servicioNombre 
+								where resServ.reservaID = res.reservaID) as totalGeneral
+
+from Reserva res 
+
+join Reserva_Servicio resServ on res.reservaID = resServ.reservaID
+join Servicio serv on resServ.servicioNombre = serv.servicioNombre
+
+group by res.reservaID,serv.servicioNombre,res.reservaMonto
+
+order by totalGeneral
+;
+
+--Query 6 Obligatorio
+
+select resServ.reservaID, sum(servicioPrecio*resServ.cantidad) from Reserva_Servicio resServ
+
+join Servicio serv on resServ.servicioNombre = serv.servicioNombre 
+
+where reservaID = 1
+
+group by resServ.reservaID
+;
+
+select avg(diffDias) as promedioDias
+
+from 
+
+(select datediff(day, res.reservaFechaInicio, res.reservaFechaFin) as diffDias
+from Reserva res
+where res.reservaID in(
+
+	select resServ.reservaID
+	from Reserva_Servicio resServ
+	where resServ.servicioNombre = 'Servicio X'
+	and resServ.servicioNombre not in(
+			select resServ2.reservaID
+			from Reserva_Servicio resServ2
+			where resServ2.servicioNombre = 'Servicio Y'
+			)
+	group by resServ.reservaID
+	)
+and year(getDate()) = YEAR(res.reservaFechaInicio)+1
+) as promedioSub;
+
+
+--Query 7 Obligatorio
+
+select 
+	auxHabOcupada.habitacionNombre,
+	sum(auxHabOcupada.cantDiasOcupada) as cantDiasOcupada,
+	datediff(day,min(fechaMinimaHab),getDate()) as DiasDesdePrimeraReserva,
+	case 
+		when sum(auxHabOcupada.cantDiasOcupada) * 100 / datediff(day,min(fechaMinimaHab),getDate()) > 60 then 'REDITUABLE'
+		when sum(auxHabOcupada.cantDiasOcupada) * 100 / datediff(day,min(fechaMinimaHab),getDate()) BETWEEN 40 and 60 then 'MAGRO'
+		else 'NOESNEGOCIO'
+	end Rentabilidad
+
+from 
+	(
+	select
+		hab.habitacionNombre,
+		datediff(day,res.reservaFechaInicio,res.reservaFechaFin) as cantDiasOcupada,
+		min(res.reservaFechaInicio) as fechaMinimaHab
+					
+	from Habitacion hab
+	join Reserva res on hab.habitacionNombre = res.habitacionNombre
+	
+	group by hab.habitacionNombre, res.reservaFechaInicio, res.reservaFechaFin
+	) as auxHabOcupada 
+
+group by auxHabOcupada.habitacionNombre;
+
+
+
+
